@@ -1,0 +1,304 @@
+openapi: 3.0.0
+info:
+  title: 5-Square API
+  description: API for user registration, authentication, and other user-related operations.
+  version: 1.0.0
+servers:
+  - url: http://localhost:4455
+    description: Local development server
+  - url: https://fivesquare-api.onrender.com
+    description: Production server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /api/signup:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tradeRole:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+                company:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                tel:
+                  type: string
+      responses:
+        200:
+          description: User profile created successfully
+        500:
+          description: Internal server error
+
+  /api/verify/{userId}:
+    post:
+      summary: Verify a new user with an OTP
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userInput:
+                  type: string
+      responses:
+        200:
+          description: User verified successfully
+        404:
+          description: User not found
+        400:
+          description: Incorrect OTP or expired token
+
+  /api/resend-otp/{userId}:
+    get:
+      summary: Resend OTP
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: New OTP sent to email
+        404:
+          description: User not found
+        500:
+          description: Internal server error
+
+  /api/loginE:
+    post:
+      summary: Login user with email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: User logged in successfully
+        404:
+          description: Invalid login details
+        400:
+          description: Account not verified
+
+  /api/loginP:
+    post:
+      summary: Login user with phone number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: User logged in successfully
+        404:
+          description: Invalid login details
+        400:
+          description: Account not verified
+
+  /api/allstates:
+    get:
+      summary: Fetch all states in Nigeria
+      responses:
+        200:
+          description: States successfully fetched
+        500:
+          description: Internal server error
+
+  /api/forgot:
+    post:
+      summary: Forgot password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        200:
+          description: Email sent with reset link
+        404:
+          description: Email doesn't exist
+        500:
+          description: Internal server error
+
+  /api/reset-user/{userId}:
+    post:
+      summary: Reset user password
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+      responses:
+        200:
+          description: Password reset successful
+        400:
+          description: Can't use previous password
+        500:
+          description: Internal server error
+      security:
+        - BearerAuth: []
+
+  /api/signOut/{userId}:
+    post:
+      summary: Sign out a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: User signed out successfully
+        404:
+          description: User not found
+        500:
+          description: Internal server error
+      security:
+        - BearerAuth: []
+
+  /api/bugform:
+    post:
+      summary: Submit a bug report
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - Account
+                - selectAreason
+                - writeMore
+                - email
+                - file
+              properties:
+                Account:
+                  type: string
+                  description: User's account information
+                  example: "user_account123"
+                selectAreason:
+                  type: string
+                  description: Reason for the bug submission
+                  example: "Bug in the login system"
+                writeMore:
+                  type: string
+                  description: Detailed description of the bug
+                  example: "The login button does not respond when clicked."
+                email:
+                  type: string
+                  description: User's email address
+                  example: "user@example.com"
+                file:
+                  type: string
+                  format: binary
+                  description: Image file of the bug
+      responses:
+        '200':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message sent successfully"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Error message detailing the validation failure"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                    example: "Error sending message"
+
+  components:
+  schemas:
+    Message:
+      type: object
+      properties:
+        Account:
+          type: string
+        selectAreason:
+          type: string
+        writeMore:
+          type: string
+        email:
+          type: string
+        image:
+          type: object
+          properties:
+            public_id:
+              type: string
+            url:
+              type: string

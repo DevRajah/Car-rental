@@ -1,0 +1,18 @@
+# Environment variables file
+.env
+
+# Node modules directory
+node_modules
+
+# Specific files in routers directory
+
+routers/reviewRouter.js
+
+# Specific files in models directory
+models/orderModel.js
+
+models/reviewModel.js
+
+# Specific files in controllers directory
+
+controllers/reviewController.js
