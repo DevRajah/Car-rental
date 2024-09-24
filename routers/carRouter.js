@@ -5,7 +5,7 @@ const {createCar,
     deleteCar,
     getAllCars,
     getCarById } = require("../controllers/carController");
-const { authenticate } = require("../middleWares/authentication");
+const { authenticate } = require("../middlewares/authentication");
 const { upload } = require("../middlewares/multer");
 
 
