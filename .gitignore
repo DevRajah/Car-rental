@@ -9,7 +9,7 @@ node_modules
 routers/reviewRouter.js
 
 # Specific files in models directory
-models/orderModel.js
+
 
 models/reviewModel.js
 
