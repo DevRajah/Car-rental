@@ -1,6 +1,6 @@
 const Address = require("../models/formModel");
 const userModel = require("../models/userModel");
-const {validateForm} = require("../middlewares/Validator")
+const {validateForm} = require("../middlewares/validator")
 
 //Fill billing information function
 const form = async (req, res) => {
