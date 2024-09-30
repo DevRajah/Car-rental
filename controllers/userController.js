@@ -227,78 +227,60 @@ const resendOTP = async (req, res) => {
 };
 
 //Function to login user with their Email
-const loginWithEmail = async (req, res) => {
+const login = async(req, res)=>{
   try {
-    //Get the data from the request body
-    const data = {
-      email: req.body.email.toLowerCase(),
-      password: req.body.password,
-    };
-    //check if the user info provided exists in the database
-    const user = await userModel.findOne({
-      email: data.email.toLowerCase(),
-    });
+      //get data from the request body
+      const {email, password}= req.body
+      //chech if user email is already exist
+      const user = await userModel.findOne({email: email.toLowerCase()})
+      if (!user) {
+          return res.status(404).json({
+              error: "This email does not exist"
+          })
+      }
 
-    if (!user) {
-      return res.status(404).json({
-        message: "Invalid login details",
-      });
-    }
-    const checkPassword = bcrypt.compareSync(data.password, user.password);
-    if (!checkPassword) {
-      return res.status(404).json({
-        message: "Password is incorrect",
-      });
-    }
+      //check if user is verified to login
+      if (user.isVerified === false) {
+          return res.status(404).json({
+              error: `Hello ${user.firstName}, you are not verified yet. Please verify to login`
+          })
+      }
 
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        email: user.email,
-      },
-      process.env.SECRET,
-      { expiresIn: "1day" }
-    );
+      //check for user password
+      const checkPassword = bcrypt.compareSync(password, user.password)
+      if (!checkPassword) {
+          return res.status(404).json({
+              error: "Password incorrect"
+          })
+      } 
+      
+      //generate token 
+      const token = jwt.sign({
+          userId: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email
+      }, process.env.SECRET, {expiresIn: "2d"}) 
 
-    const maskedEmail = (email) => {
-      const newEmail = email.split("@");
-      const firstThree = newEmail[0].slice(0, 3);
-      const asterisk = newEmail[0].slice(3).length;
-      const asteriskNew = "*".repeat(asterisk);
-      const theTLD = "@" + newEmail[1];
+       // Save the token to the database
+       user.token = token;
+       await user.save();
 
-      return `${firstThree}${asteriskNew}${theTLD}`;
-    };
+       
 
-    const userData = {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      isVerified: user.isVerified,
-      id: user._id,
-      maskedEmail: maskedEmail(user.email),
-    };
-    user.token = token;
+      //Throw success message
+      res.status(200).json({
+          message: "Login Successful",
+          data: user,
+          token
+      })
 
-    await user.save();
-    if (user.isVerified === true) {
-      return res.status(200).json({
-        message: `Welcome to 5 Square, ${user.firstName}`,
-        data: userData,
-        token: token,
-      });
-    } else {
-      return res.status(400).json({
-        message:
-          "Sorry, your account is not verified yet. Please check your mail ",
-      });
-    }
   } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error " + error.message,
-    });
+      res.status(500).json({
+          error: error.message
+      })
   }
-};
+}
 
 //Function to login user with their Phone Number
 const loginWithPhoneNumber = async (req, res) => {
@@ -366,59 +348,6 @@ const loginWithPhoneNumber = async (req, res) => {
           "Sorry, your account is not verified yet. Please check your mail ",
       });
     }
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error " + error.message,
-    });
-  }
-};
-
-// Function to fetch all the states in Nigeria for the signUp
-const allStates = (req, res) => {
-  try {
-    const states = [
-      "Abia",
-      "Adamawa",
-      "Akwa Ibom",
-      "Anambra",
-      "Bauchi",
-      "Bayelsa",
-      "Benue",
-      "Borno",
-      "Cross River",
-      "Delta",
-      "Ebonyi",
-      "Edo",
-      "Ekiti",
-      "Enugu",
-      "Gombe",
-      "Imo",
-      "Jigawa",
-      "Kaduna",
-      "Kano",
-      "Katsina",
-      "Kebbi",
-      "Kogi",
-      "Kwara",
-      "Lagos",
-      "Nasarawa",
-      "Niger",
-      "Ogun",
-      "Ondo",
-      "Osun",
-      "Oyo",
-      "Plateau",
-      "Rivers",
-      "Sokoto",
-      "Taraba",
-      "Yobe",
-      "Zamfara",
-    ];
-
-    return res.status(200).json({
-      message: "States successfully fetched!",
-      data: states,
-    });
   } catch (error) {
     return res.status(500).json({
       message: "Internal server error " + error.message,
@@ -709,11 +638,10 @@ module.exports = {
   signUp,
   verify,
   resendOTP,
-  loginWithEmail,
+  login,
   loginWithPhoneNumber,
   forgotPassword,
   resetPassword,
-  allStates,
   updatePersonalProfile,
   uploaAPhoto,
   signOut,

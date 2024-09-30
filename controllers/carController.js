@@ -102,7 +102,7 @@ const updateCar = async (req, res) => {
 
     // Find and update the category
     const updatedCar = await carModel.findByIdAndUpdate(
-      id,
+      carId,
       {
         carName,
         price,

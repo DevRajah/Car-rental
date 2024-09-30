@@ -22,8 +22,7 @@ const orderSchema = new mongoose.Schema({
         required: true,
       },
       carImage: {
-        type: String,
-        required: true,
+          type: Array
       },
       price: {
         type: Number,

@@ -16,11 +16,11 @@ const {addToCart,
        updateOrderMovement} = require("../controllers/cartController")
 const {authenticate} = require("../middlewares/authentication")
 
-cartRouter.post('/add-to-cart/:userId/:carId',  authenticate, addToCart);
-cartRouter.delete('/remove-from-cart/:userId/:carId', authenticate, removeFromCart);
-cartRouter.get('/view-cart/:userId', authenticate, viewCart);
-cartRouter.put('/update-quantity/:userId/:carId', authenticate, updateCart);
-cartRouter.delete('/delete-cart/:userId', authenticate, deleteCart);
+cartRouter.post('cart/add/:userId/:carId',  authenticate, addToCart);
+cartRouter.delete('cart/remove/:userId/:carId', authenticate, removeFromCart);
+cartRouter.get('cart/view/:userId', authenticate, viewCart);
+cartRouter.put('cart/update/:userId/:carId', authenticate, updateCart);
+cartRouter.delete('cart/delete/:userId', authenticate, deleteCart);
  cartRouter.post('/checkout/:userId', checkout);
  cartRouter.get("/order-details/:orderId", getOrderDetails)
  cartRouter.get('/orders', getAllOrders);

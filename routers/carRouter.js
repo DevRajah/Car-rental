@@ -10,13 +10,13 @@ const { upload } = require("../middlewares/multer");
 
 
 //endpoint to create product category
-router.post('/create-car', upload.array('images', 5), authenticate, createCar)
+router.post('/create-car', upload.array('images', 5),  createCar)
 
 //endpoint to update product category
 router.put('/update-car/:id', upload.array('images', 5), updateCar)
 
 //endpoint to get all product categories
-router.get('/get-cars', authenticate, getAllCars)
+router.get('/get-cars', getAllCars)
 
 //endpoint to get one category by id
 router.get("/get-one-car/:carId", getCarById)

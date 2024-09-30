@@ -5,11 +5,10 @@ const router = express.Router();
 const { signUp,
     verify,
     resendOTP,
-    loginWithEmail,
+    login,
     loginWithPhoneNumber,
     forgotPassword,
     resetPassword,
-    allStates,
     updatePersonalProfile,
     uploaAPhoto,
     signOut,
@@ -23,7 +22,7 @@ const { authenticate, Admin, } = require('../middlewares/authentication');
 router.post('/signup', signUp);
 
 //endpoint to login with email
-router.post("/loginE", loginWithEmail);
+router.post("/login", login);
 
 //endpoint to login with phone number
 router.post("/loginP", loginWithPhoneNumber);
@@ -35,16 +34,13 @@ router.post('/verify/:userId', verify);
 router.get('/resend-otp/:userId', resendOTP);
 
 //endpoint to reset user Password
-router.post('/reset-user/:userId', resetPassword);
+router.post('/reset-password/:userId', resetPassword);
 
 //endpoint for forgot password
-router.post("/forgot", forgotPassword);
+router.post("/forgot-password", forgotPassword);
 
 //endpoint to sign out a user
-router.post("/signout/:userId", authenticate, signOut);
-
-//endpoint to get all states in Nigeria
-router.get("/allstates", allStates);
+router.post("/sign-out/:userId", authenticate, signOut);
 
 //endpoint to submit bug form
 router.post('/bugform', upload.single('image'), message);

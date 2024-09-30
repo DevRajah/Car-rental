@@ -57,8 +57,8 @@ const addToCart = async (req, res) => {
         const newItem = {
           carId,
           price: car.price, // Use the fixed price
-          carName: car.name,
-          carImage: car.image,
+          carName: car.carName,
+          carImage: car.images,
           sub_total: car.price,
         };
   
@@ -78,43 +78,68 @@ const addToCart = async (req, res) => {
   };
   
 //Function to update cart quantity
-const updateCart= async (req, res) => {
-    try {
-      const { carId } = req.params;
-      const { quantityChange } = req.body; 
-  
-      // Find the car by ID
-      const car = await cartModel.findById(carId);
-      if (!car) {
-        return res.status(404).json({ message: "Car not found." });
-      }
-  
-      // Ensure quantityChange is provided
-      if (!quantityChange) {
-        return res.status(400).json({ message: "Quantity change value is required." });
-      }
-  
-      // Update the available quantity
-      const newQuantity = car.available + quantityChange;
-  
-      // Ensure the quantity doesn't fall below zero
-      if (newQuantity < 0) {
-        return res.status(400).json({ message: "Insufficient quantity available." });
-      }
-  
-      car.available = newQuantity;
-  
-      // Save the updated car to the database
-      await car.save();
-  
-      res.status(200).json({
-        message: "Car quantity updated successfully.",
-        data: car,
-      });
-    } catch (err) {
-      res.status(500).json({ message: `Error updating car quantity: ${err.message}` });
+const updateCart = async (req, res) => {
+  try {
+    const { userId, carId } = req.params;
+    const { quantityChange } = req.body;
+
+    // Check if user exists
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(400).json({ message: "User does not exist." });
     }
-  };
+
+    // Find the user's cart
+    let cart = await cartModel.findOne({ userId: userId });
+    if (!cart) {
+      return res.status(400).json({ message: "Cart not found." });
+    }
+
+    // Find the car in the user's cart
+    let carInCart = cart.cars.find((item) => item.carId.equals(carId));
+    if (!carInCart) {
+      return res.status(404).json({ message: "Car not found in cart." });
+    }
+
+    // Ensure quantityChange is provided
+    if (typeof quantityChange !== 'number') {
+      return res.status(400).json({ message: "Quantity change value must be a number." });
+    }
+
+    // Update the car quantity in the cart
+    const newQuantity = carInCart.quantity + quantityChange;
+
+    // Ensure the quantity doesn't fall below 1
+    if (newQuantity < 1) {
+      return res.status(400).json({ message: "Quantity cannot be less than 1." });
+    }
+
+    // Ensure car price exists and is valid
+    if (typeof carInCart.price !== 'number' || isNaN(carInCart.price)) {
+      return res.status(400).json({ message: "Invalid price for the car." });
+    }
+
+    carInCart.quantity = newQuantity;
+
+    // Recalculate the sub_total for the updated car in the cart
+    carInCart.sub_total = carInCart.quantity * carInCart.price;
+
+    // Recalculate the total price of the cart
+    cart.total = cart.cars.reduce((acc, item) => acc + item.sub_total, 0);
+
+    // Save the updated cart
+    await cart.save();
+
+    res.status(200).json({
+      message: "Car quantity in cart updated successfully.",
+      data: cart,
+    });
+  } catch (err) {
+    res.status(500).json({ message: `Error updating car quantity in cart: ${err.message}` });
+  }
+};
+
+
   
 
 //Function to remove specific product from cart
@@ -186,15 +211,16 @@ const deleteCart = async (req, res) => {
 //Function to checkout a cart
 const checkout = async (req, res) => {
     try {
-      const { userId, guestCartId } = req.body;
+      const { userId} = req.params;
   
       // Retrieve the user's or guest's cart
       let cart;
       if (userId) {
         cart = await cartModel.findOne({ userId });
-      } else if (guestCartId) {
-        cart = await cartModel.findOne({ guestCartId });
-      }
+      } 
+      // else if (guestCartId) {
+      //   cart = await cartModel.findOne({ guestCartId });
+      // }
   
       // If cart doesn't exist, return an error
       if (!cart || cart.cars.length === 0) {
@@ -213,14 +239,14 @@ const checkout = async (req, res) => {
   
         // Check if the car is still available
         if (car.available <= 0) {
-          return res.status(400).json({ message: `Car ${car.name} is out of stock.` });
+          return res.status(400).json({ message: `Car ${car.carName} is out of stock.` });
         }
   
         // Ensure enough quantity is available
         if (car.available < 1) {
           return res
             .status(400)
-            .json({ message: `Insufficient quantity for ${car.name}.` });
+            .json({ message: `Insufficient quantity for ${car.carName}.` });
         }
   
         // Deduct from available cars
@@ -234,7 +260,7 @@ const checkout = async (req, res) => {
       // Create a new order for the user or guest
       const order = new orderModel({
         userId: userId ? userId : null, // Save user ID if available
-        guestCartId: guestCartId ? guestCartId : null, // Save guestCartId if available
+        // guestCartId: guestCartId ? guestCartId : null, // Save guestCartId if available
         cars: cart.cars, // All the cars in the cart
         totalCost,
         status: "Pending", // Initial status of the order
@@ -257,7 +283,6 @@ const checkout = async (req, res) => {
     }
   };
   
-
 
 // Function to get one order
 const getOrderDetails = async (req, res) => {

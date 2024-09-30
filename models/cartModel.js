@@ -21,10 +21,12 @@ const cartSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      carImage: {
-        type: String,
-        required: true,
-      },
+      carImage: [
+        {
+          public_id: { type: String, required: true },
+          url: { type: String, required: true },
+        }
+      ],
       price: {
         type: Number,
         required: true,
