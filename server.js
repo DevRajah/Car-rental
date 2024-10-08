@@ -15,6 +15,7 @@ const carRouter =  require('./routers/carRouter')
 const cartRouter =  require('./routers/cartRouter')
 const formRouter = require('./routers/formRouter')
 const locationRouter = require('./routers/locationRouter');
+const contactUsRouter = require('./routers/contactUsRouter.js');
 
 const port = process.env.PORT
 
@@ -52,6 +53,7 @@ app.use(cartRouter)
 app.use(carRouter)
 app.use (formRouter)
 app.use (locationRouter)
+app.use(contactUsRouter)
 
 const swaggerDocument = YAML.load('./utils/swagger.yaml');
 
